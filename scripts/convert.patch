@@ -1,0 +1,36 @@
+--- convert.sh	2021-06-01 15:05:24.639618630 -0700
++++ convert-mod.sh	2021-06-01 15:09:18.878026217 -0700
+@@ -7,25 +7,18 @@
+ 
+ mdb=$1
+ sql=$2
++backend=$3
+ 
+-if [ -z "$2" ]; then
++if [ -z "$3" ]; then
+     echo 'This script convert a MDB file to SQL file. You need to specify the name of both'
+-    echo "Usage: $0 <mdb_file> <sql_file>"
++    echo "Usage: $0 <mdb_file> <sql_file> <backend>"
+     exit 1
+ fi
+ 
+-if [ -z "$(which mdb-tables)" ]; then
+-    echo 'You need mdbtools installed.'
+-    echo 'Learn more at http://mdbtools.sourceforge.net/'
+-    echo 'If you use Debian/Ubuntu, just execute:'
+-    echo '  sudo aptitude install mdbtools'
+-    exit 2
+-fi
+-
+-mdb-schema $mdb > $sql
+-sed -i 's/Long Integer/INT(11)/g; s/Text /VARCHAR/g' $sql
+-for table in $(mdb-tables $mdb); do
+-    mdb-export -I -R ';' $mdb $table >> $sql
++mdb-schema "$mdb" > "$sql"
++sed -i 's/Long Integer/INT(11)/g; s/Text /VARCHAR/g' "$sql"
++for table in $(mdb-tables "$mdb"); do
++    mdb-export -I "$backend" "$mdb" "$table" >> "$sql"
+ done
+-sed -i '/^-\{2,\}/d; s/DROP TABLE /DROP TABLE IF EXISTS /' $sql
++sed -i '/^-\{2,\}/d; s/DROP TABLE /DROP TABLE IF EXISTS /' "$sql"
+ 
